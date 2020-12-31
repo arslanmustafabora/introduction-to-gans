@@ -6,6 +6,7 @@ from tensorflow.python.keras.layers import ELU
 from tensorflow.python.keras.layers import Flatten, Dropout
 from tensorflow.python.keras.optimizers import Adam
 from tensorflow.python.keras.datasets import mnist
+import tensorflow as tf
 
 import os
 from PIL import Image
@@ -71,7 +72,7 @@ def train():
     optimize = Adam(lr=learning_rate, beta_1=0.5)
     d.trainable = True
     d.compile(loss='binary_crossentropy', metrics=['accuracy'], optimizer=optimize)
-
+    # optimizer = optimize, loss = 'binary_crossentropy', metrics = ['accuracy']
     d.trainable = False
     dcgan = Sequential([g, d])
     dcgan.compile(loss='binary_crossentropy', metrics=['accuracy'], optimizer=optimize)
@@ -81,3 +82,24 @@ def train():
     y_d_true = [1] * batch_size
     y_d_gen = [0] * batch_size
     y_g = [1] * batch_size
+
+    for epoch in range(num_epoch):
+        for i in range(num_batches):
+            x_d_batch = x_train[i * batch_size:(i + 1) * batch_size]
+            x_g = np.array([np.random.normal(0, 0.5, 100) for _ in range(batch_size)])
+            x_d_gen = g.predict(x_g)
+
+            d_loss = d.train_on_batch(x_d_batch, y_d_true)
+            d_loss = d.train_on_batch(x_d_gen, y_d_gen)
+
+            g_loss = dcgan.train_on_batch(x_g, y_g)
+            show_progress(epoch, i, g_loss[0], d_loss[0], g_loss[1], d_loss[1])
+
+        image = combine_images(g.predict(gen_img))
+        image = image * 127.5 + 127.5
+        Image.fromarray(image.astype(np.uint8)).save(image_path + "%03d.png" % (epoch))
+
+
+if __name__ == '__main__':
+    tf.compat.v1.disable_eager_execution()
+    train()

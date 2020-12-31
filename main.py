@@ -53,7 +53,7 @@ def discriminator(input_shape=(28, 28, 1), nb_filter=64):
 
 
 batch_size = 32
-num_epoch = 50
+num_epoch = 10
 learning_rate = 0.0002
 image_path = 'images/'
 
@@ -72,7 +72,6 @@ def train():
     optimize = Adam(lr=learning_rate, beta_1=0.5)
     d.trainable = True
     d.compile(loss='binary_crossentropy', metrics=['accuracy'], optimizer=optimize)
-    # optimizer = optimize, loss = 'binary_crossentropy', metrics = ['accuracy']
     d.trainable = False
     dcgan = Sequential([g, d])
     dcgan.compile(loss='binary_crossentropy', metrics=['accuracy'], optimizer=optimize)
